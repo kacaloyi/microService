@@ -1,17 +1,11 @@
- using celery with flask
-Search docs
-在 Flask 中使用 Celery
-什么是 Celery?
-致行动派读者
-Flask 和 Celery 一起工作
-简单例子：异步发送邮件
-复杂例子：显示状态更新和结果
-运行示例
- 
+# microService
+一个基于Python+flask+Celery的微服务框架。
 
- 
-Docs » 在 Flask 中使用 CeleryView page source
-在 Flask 中使用 Celery_images/flask-celery.png
+基于一下文件，配合IOLoop和HTTPServer，合成一个框架。
+把爬虫和下载融合进来，而且还能够通过微服务监控状态，调整流程，让爬虫更加好用。
+
+在 Flask 中使用 Celery
+_images/flask-celery.png
 后台运行任务的话题是有些复杂，因为围绕这个话题会让人产生困惑。为了简单起见，在以前我所有的例子中，我都是在线程中执行后台任务，但是我一直注意到更具有扩展性以及具备生产解决方案的任务队列像 Celery 应该可以替代线程中执行后台任务。
 
 不断有读者问我关于 Celery 问题，以及怎样在 Flask 应用中使用它，因此今天我将会向你们展示两个例子，我希望能够覆盖大部分的应用需求。
