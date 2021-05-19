@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>get sample</title>
+</head>
+<body>
+    <p>
+         <h1>This is a get sample for flask in tornado</h1>
+    </p>
+    <p>
+    <!--这里设计表单数据，最终是通过submit按钮触发
+    action=/deal_request，
+    即上面HelloWorld.py的/deal_request路由-->
+        <form action="/deal_request" method="get">
+        <div>
+            <p>param1: <input type="text" name="param1" /> </p>
+        </div>
+        <div>
+            <p>param2: <input type="text" name="param2" /> </p>
+        </div>
+        <input type="submit" value="submit" />
+    </form>
+   </p>
+</body>
+</html>
