@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>添加漫画章节</title>
+<script src="//cdnjs.cloudflare.com/ajax/libs/nanobar/0.2.1/nanobar.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script type="text/javascript" src="{{url_for('static',filename='js/worker.js') }}"></script>
+<link rel="stylesheet" type="text/css" href="{{url_for('static',filename='css/css.css') }}">
+</head>
+<body>
+    <p>
+         <h1>章节发布</h1>
+    </p>
+    <p>
+     <!--真正需要的，只有四个参数
+    	$bookid = $_POST['bid'];//书id
+    	$chapid = $_POST['cid'];//章节id
+        $ctitle=$_POST['ctitle'];//漫画标题
+        $mhbody=$_POST['content'];//漫画内容
+ 
+        $bookname=$_POST['bookname'];//书名  非必须
+        $author=$_POST['author'];//作者   非必须
+    
+        binfo: 'mhid','mhid_org','title','author'
+         info: 'mhid','ji_no','title','pics_local'
+     -->
+     <div>
+        <p>mhid: <span>{{binfo[0]}}</span> </p>
+        <p>原mhid: <span>{{binfo[1]}}</span> </p>
+      
+    </div>
+        <h4>自动根据书名和章节名更新对应的章节</h4>
+        <form action="{{postsite}}" method="post">
+        <div>
+            <p>书名: <input type="text" name="bookname" value="{{binfo[2]}}"/> </p> 
+            <p>作者: <input type="text" name="author" value="{{binfo[3]}}"/> </p> 
+        </div>
+        <div>
+            <p>章节id: <input type="text" name="cid" value="{{info[1]}}"/> </p>
+        </div>
+        <div>
+            <p>章节标题: <input type="text" name="ctitle" value="{{info[2]}}"/> </p>
+        </div>
+        <div>
+            <p>章节内容: <textarea type="text" name="content" cols="35"   rows="12"   style="OVERFLOW:   hidden;width: 80%;" >{{info[3]}}</textarea> </p>
+        </div>
+        <input type="submit" value="发布" />
+    </form>
+   </p>
+</body>
+<SCRIPT LANGUAGE="JavaScript">
+    var oRange;     // save the current textrange  
+    var intCount = 0;   // this pos of current textrange in the total count
+    var intTotalCount = 0;  // total count
+    //==============================================
+    //function : fnSearch()
+    //comment  : Search the text
+    //param    : none
+    //return   : none
+    //author   : Fantiny
+    //Date     : 10/21/2005
+    //==============================================
+    function fnSearch() {
+     var strBeReplaced;
+     var strReplace;
+    
+     strBeReplaced = fm1.txtarea2.value;
+     strReplace = fm1.txtarea3.value;
+    
+     fnNext();
+    
+     fm1.txtarea1.focus();
+     oRange = fm1.txtarea1.createTextRange(); //Create a textRange for the Textarea
+    
+     
+     // Find the text by findtext method
+     for (i=1; oRange.findText(strBeReplaced)!=false; i++) {
+      if(i==intCount){   
+       oRange.select();   // select the finded text
+       oRange.scrollIntoView(); // scroll the page and set the text Into View
+       break;
+      }
+      oRange.collapse(false);   //
+     }
+    }
+    
+    //==============================================
+    //function : fnSearch()
+    //comment  : set the flag to the next textrange
+    //param    : none
+    //return   : none
+    //author   : Fantiny
+    //Date     : 10/21/2005
+    //==============================================
+    function fnNext(){
+     if (intCount > 0 && intCount < intTotalCount){
+      intCount = intCount + 1;
+     }
+     else{
+      intCount = 1 ;
+     }
+    }
+    
+    //==============================================
+    //function : init()
+    //comment  : initialize at page onload to get the count
+    //param    : none
+    //return   : none
+    //author   : Fantiny
+    //Date     : 10/21/2005
+    //==============================================
+    function init(){
+     var oRange ;
+     var strBeRepalced;
+    
+     oRange = fm1.txtarea1.createTextRange();  //Create a textRange for the Textarea
+     strBeReplaced = fm1.txtarea2.value;    
+    
+     for (i=0; oRange.findText(strBeReplaced)!=false; i++) {
+         oRange.collapse(false);  // Moves the insertion point to the end of the text range.
+     }
+    
+     intTotalCount = i ;
+    
+    }
+    
+    //==============================================
+    //function : fnReplace()
+    //comment  : replace the text of the selected textrange
+    //param    : none
+    //return   : none
+    //author   : Fantiny
+    //Date     : 10/21/2005
+    //==============================================
+    function fnReplace(){
+     var strReplace; 
+     
+     strReplace = fm1.txtarea3.value;
+    
+     // if the textrange is exist, replace the text
+     if(oRange!= null && typeof(oRange)=="object" && intTotalCount > 0){
+      oRange.text = strReplace;
+      intCount = intCount - 1;
+      intTotalCount = intTotalCount - 1;
+      oRange = null;
+     }
+    }
+    //-->
+    </SCRIPT>
+
+</html>

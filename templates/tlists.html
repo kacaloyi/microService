@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>结果查询模板</title>
+</head>
+<body>
+    <p>
+         <h1>依次填写查询条件</h1>
+    </p>
+    <p>
+     <!--这里设计表单数据，最终是通过submit按钮触发
+    action=/deal_request，
+    即上面HelloWorld.py的/deal_request路由-->
+        <form action="/result" style="width: 80%;text-align: right;margin:3em" method="post">
+        <div >
+            <p>表(M): <input type="text" list="tablelist" name="M" value="{{table}}" style="width: 50%;"/> </p>
+            <datalist id ="tablelist">
+                <option>vv_sh_mhlist</option>
+                <option>vv_sh_episodes</option>
+                <option>vv_sh_download</option>
+            </datalist>
+        </div>
+        <div>
+            <p>项目(fields): <input type="text" list="fieldlist" name="fields" value="{{fields}}" style="width: 50%;"/> </p>
+            <datalist id ="fieldlist">
+                <option>*</option>
+                <option>mhid,title,statu,create_time</option>
+                <option>mhid,ji_no,title,statu,create_time</option>
+                <option>mhid,ji_no,pathname,url,url_org</option>
+            </datalist>
+        </div>
+        <div>
+            <p>条件(WHERE): <input type="text" name="where" value="{{where}}" style="width: 50%;"/> </p>
+        </div>
+        <div>
+            <p>排序(order): <input type="text" list="orderlist" name="order" value="{{order}}" style="width: 50%;"/> </p>
+            <datalist id ="orderlist">
+                <option>create_time ASC</option>
+                <option>ji_no ASC</option>
+            </datalist>
+        </div>
+        <input type="submit" value="查询" />
+    </form>
+   </p>
+   <ul>
+    {% for n in items %}
+        <li>{{ n }}</li>
+    {% endfor %}
+    </ul>
+
+</body>
+</html>

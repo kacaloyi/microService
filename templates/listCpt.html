@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>漫画详情和章节列表</title>
+<script src="//cdnjs.cloudflare.com/ajax/libs/nanobar/0.2.1/nanobar.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script type="text/javascript" src="{{url_for('static',filename='js/worker.js') }}"></script>
+<link rel="stylesheet" type="text/css" href="{{url_for('static',filename='css/css.css') }}">
+</head>
+<body>
+    <p>
+         <h1>《{{info[1]}}》</h1>
+    </p>
+    <!--这里设计表单数据，最终是通过submit按钮触发
+    action=/deal_request，
+    即上面HelloWorld.py的/deal_request路由-->
+    
+    <div class="infoBox" style="width: 80%;text-align: left;margin:3em">
+        <!--'mhid','title','statu','cover_pic','author','summary','from_unixtime(create_time)','url_org']-->
+       <form action="/bookEdit" method="post">      
+       <div>mhid:<input type="text" name='mhid' value="{{info[0]}}" /></div>
+       <div>title:<input type="text" name='title' value="{{info[1]}}" style="width: 50%;"/></div>
+       <div>statu:<input type="text" name='statu' value="{{info[2]}}"  readonly="true"/></div>
+       <div>author:<input type="text" name='author' value="{{info[4]}}" /></div>
+       <div>create_time:<input type="text" name='create_time' value="{{info[6]}}"  readonly="true"/></div>
+       <div>url_org:<input type="text" name='url_org' value="{{info[7]}}"  readonly="true" style="width: 50%;"/></div>
+       <div>cover_pic:<input type="text" name='cover_pic' value="{{info[3]}}" style="width: 50%;"/></div>
+       <div>summary:<textarea type="text" name='summary' cols="25"   rows="6"   style="OVERFLOW:   hidden; width: 80%;" >
+        {{info[5]}} 
+       </textarea></div>
+       <input type="submit" value="修改" />
+       </form > 
+       <div class = "operater">       
+          <button  onclick="start('{{ info[0] }}','{{ info[7] }}')" >采集详情和章节</button>
+          <button  onclick="window.location.href = '/bookfile?mhid={{ info[0] }}'" >查看所有图片 </button>
+          <button  onclick="window.location.href = '/addBook?mhid={{ info[0] }}'" >发布 </button>
+       </div>
+           
+       
+     </div>
+     
+    <div id="progress"></div>
+    <div class ="listBox">
+        <!--'ji_no','title','statu','from_unixtime(create_time)','update_time','pics'-->
+        <div class ="title "><span>'ji_no',</span><span>statu',</span><span>'create_time',</span><span>'update_time',</span><span >'title',</span>'操作'</div>
+        {% for n in items %}        
+            <div class = item ><span>{{ n[0] }},</span><span>{{ n[2] }},</span><span>{{ n[3] }},</span><span>{{ n[4] }},</span><span style="width: 10px;" >{{ n[1] }},</span> 
+                <span><a href="/bookfile?mhid={{ info[0] }}&ji_no={{ n[0] }}">预览</a>|<a href="/addChapt?mhid={{ info[0] }}&ji_no={{ n[0] }}">发布章节</a></span>
+            </div>
+        {% endfor %}
+       </div>
+
+</body>
+<script type="text/javascript">
+
+    // 按钮点击事件	
+    // $(function() {
+    //        //var data = {url:"/jobs",param:"{id:123,title:good}"};	
+    //        $('#start-bg-job').click(start);
+    //        $('#skip-job').click(jump);		
+    //    });
+    function getUrlParam(name)
+    {
+        var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+        var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+        if (r!=null) return unescape(r[2]); return null; //返回参数值
+    }
+
+    function start_all(comicid){
+  
+        var data = {url:"/jobs",param:{cmd:"downloadpics",mhid:comicid}};
+        var ji_no = getUrlParam('ji_no');
+        if (null != ji_no){
+            data = {url:"/jobs",param:{cmd:"downloadpics",mhid:comicid,ji_no:ji_no}};
+        }
+        start_long_task(data);
+
+    }
+    
+    function start(comicid,comicurl){
+  
+        var data = {url:"/jobs",param:{cmd:"bookdetail",mhid:comicid,url:comicurl}};
+        start_long_task(data);
+    
+    }
+    
+    function jump(){
+     window.location.href="/books";
+    }
+    
+</script>
+</html>

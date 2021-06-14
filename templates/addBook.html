@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>添加漫画</title>
+<script src="//cdnjs.cloudflare.com/ajax/libs/nanobar/0.2.1/nanobar.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script type="text/javascript" src="{{url_for('static',filename='js/worker.js') }}"></script>
+<link rel="stylesheet" type="text/css" href="{{url_for('static',filename='css/css.css') }}">
+</head>
+<body>
+    <p>
+         <h1>漫画发布</h1>
+    </p>
+    <p>
+     <!-- 
+        这几个必须有
+            $bookid = $_POST['bid'];//书id
+            $bookname=$_POST['bookname'];//书名
+            $author=$_POST['author'];//作者
+
+            $des=$_POST['des'];//简介
+            $tstype=$_POST['tstype'];//漫画首页分类
+            $sstype=$_POST['sstype'];//所属分类
+            $litpic=$_POST['litpic'];//封面图
+        
+            $sex=$_POST['sex'];//男生女生
+                
+            $send=$_POST['send'];//打赏金额
+            $status=$_POST['status'];//小说状态(连载1/完结2)
+            $free_type=$_POST['free_type'];//属性(免费1/收费2)
+            $pay_num=$_POST['pay_num'];//第n话开始需要付费	       
+        
+            'mhid','title','cover_pic','author','summary','state','mhcate','cateids','mhid_org'
+       -->
+    <div>
+        <p>mhid: "{{info[0]}}"</p> 
+        <p>mhid_org:"{{info[8]}}"</p> 
+    </div>
+    <form action="{{postsite}}" method="post">        
+        <div>
+            <p>bookname: <input type="text" name="bookname" value="{{info[1]}}" style="width: 50%;"/> </p>
+        </div>
+        <div>
+            <p>封面图: <input type="text" name="litpic" value="{{info[2]}}" style="width: 50%;"/> </p>
+        </div>
+        <div>
+            <p>author: <input type="text" name="author" value="{{info[3]}}"/> </p>
+        </div>
+        <div>
+            <p>简介: <textarea type="text" name="des" cols="25"   rows="6"   style="OVERFLOW:   hidden; width: 80%;" > {{info[4]}}</textarea> </p>
+        </div>
+        <div>
+            <p>小说状态(连载1/完结2): <input type="text" name="status" value="{{info[5]}}"/> </p>
+        </div>
+        <div>
+            <p>漫画首页分类: <input type="text" name="tstype" value="8"/> </p>
+        </div>
+        <div>
+            <p>所属分类: <input type="text" name="sstype" value="4,5,6"/> </p>
+        </div>
+        <div>
+            <p>男生女生: <input type="text" list="sexlist" name="sex" value="1"/> 
+                <datalist id ="sexlist">
+                    <option>1</option>
+                    <option>0</option>
+                </datalist>
+            </p>
+        </div>
+        <div>
+            <p>打赏金额: <input type="text" name="send" value="188"/> </p>
+        </div>
+        <div>
+            <p>属性(免费1/收费2): <input type="text" name="free_type" value="2"/> </p>
+        </div>
+        <div>
+            <p>第n话开始需要付费: <input type="text" name="pay_num" value="0"/> </p>
+        </div>
+        <div>
+            <p><input type="checkbox" name="check"   checked="true"/> 仅查询 </p>
+        </div>
+        <input type="submit" value="发布" />
+    </form>
+   </p>
+</body>
+</html>

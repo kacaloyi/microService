@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>漫画书列表</title>
+
+<style>
+  .listBox {
+    width: 85%;
+  }
+
+  .listBox.title {
+    width: 100%;
+    font-style: oblique;
+  }
+
+  .listBox.item {
+    width: 100%;
+    font-style:normal;
+  }
+
+</style>
+<script src="//cdnjs.cloudflare.com/ajax/libs/nanobar/0.2.1/nanobar.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script type="text/javascript" src="{{url_for('static',filename='js/worker.js') }}"></script>
+<link rel="stylesheet" type="text/css" href="{{url_for('static',filename='css/css.css') }}">
+</head>
+<body>
+    <p>
+         <h1>所有漫画书</h1>
+    </p>
+    <div class="infoBox" style="width: 80%;text-align: left;margin:3em">
+       <div class = "operater">
+          <button  onclick="window.location.href = '/'" >重新采集所有漫画 </button>          
+       </div>
+       
+    </div>
+     
+    <div id="progress"></div>
+
+   <div class ="listBox">
+    <div class ="title "><span>'mhid',</span><span>'statu',</span><span>'create_time',</span><span >'title',</span>'操作'</div>
+    {% for n in items %}        
+        <div class = item ><span>{{ n[0] }},</span><span>{{ n[2] }},</span><span>{{ n[3] }},</span><span style="width: 10px;" >{{ n[1] }},</span> 
+            <span><a href="/bookinfo?mhid={{ n[0] }}">详情</a></span>
+        </div>
+    {% endfor %}
+   </div>
+  
+</body>
+<script type="text/javascript">
+
+    // 按钮点击事件	
+    // $(function() {
+    //        //var data = {url:"/jobs",param:"{id:123,title:good}"};	
+    //        $('#start-bg-job').click(start);
+    //        $('#skip-job').click(jump);		
+    //    });
+    
+    function start(comicid,comicurl){
+  
+        var data = {url:"/jobs",param:{cmd:"bookdetail",mhid:comicid,url:comicurl}};
+        start_long_task(data);
+    
+    }
+    
+    function jump(){
+     window.location.href="/books";
+    }
+    
+</script>
+</html>
