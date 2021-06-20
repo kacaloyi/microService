@@ -2,81 +2,59 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>耗时任务监控演示</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>首页</title>
 <!--
 <script type="text/javascript" src="{{url_for('static',filename='js/jquery.js') }}"></script>
 <script type="text/javascript" src="{{url_for('static',filename='js/nanobar.js') }}"></script>
 -->
 <script src="//cdnjs.cloudflare.com/ajax/libs/nanobar/0.2.1/nanobar.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script type="text/javascript" src="{{url_for('static',filename='js/worker.js') }}"></script>
+<link rel="stylesheet" type="text/css" href="{{url_for('static',filename='css/css.css') }}">
 </head>
 <body>
-    <h2>用进度条显示耗时任务的状态和信息</h2>	
+    <h3>采集和展示</h3>	
+    <div class="infoBox" style="width: 80%;text-align: left;margin:3em">
+    <div>
+        <h2>起始地址：</h2>
+        <textarea id='starturl' name =starturl rows=15 style="width: 100%;" >{{urls}}</textarea>
+    </div>
     <button id="start-bg-job">任务开始</button><br><br>	
+    <button id="skip-job">查看已经收集的漫画</button><br><br>	
+    </div>
+
     <div id="progress"></div>
+
+    <div>
+        <ul id="itemlist">
+        </ul>
+    </div>
+
 </body>
 
 <script type="text/javascript">
 
 // 按钮点击事件	
-$(function() {	
-       $('#start-bg-job').click(start_long_task);	
-   });	
-// 请求 longtask 接口	
-function start_long_task() {	
-            // 添加元素在html中	
-            div = $('<div class="progress"><div></div><div>0%</div><div>...</div><div>&nbsp;</div></div><hr>');	
-            $('#progress').append(div);	
-            // 创建进度条对象	
-            var nanobar = new Nanobar({	
-                bg: '#44f',	
-                target: div[0].childNodes[0]	
-            });	
-            // ajax请求jobs
-            $.ajax({	
-                type: 'POST',	
-                url: '/jobs',	
-                // 获得数据，从响应头中获取Location	
-                success: function(data, status, request) {	
-                    status_url = request.getResponseHeader('Location');	
-                    // 调用 update_progress() 方法更新进度条	
-                    update_progress(status_url, nanobar, div[0]);	
-                },	
-                error: function() {	
-                    alert(' 发生不明错误');	
-                }	
-            });	
-        }	
+$(function() {
+       //var data = {url:"/jobs",param:"{id:123,title:good}"};	
+       $('#start-bg-job').click(start);
+       $('#skip-job').click(jump);		
+   });
 
-// 更新进度条	
-function update_progress(status_url, nanobar, status_div) {	
-            // getJSON()方法是JQuery内置方法，这里向Location中对应的url发起请求，即请求「/status/<task_id>」	
-            $.getJSON(status_url, function(data) {	
-                // 计算进度	
-                percent = parseInt(data['current'] * 100 / data['total']);	
-                // 更新进度条	
-                nanobar.go(percent);	
-                // 更新文字	
-                $(status_div.childNodes[1]).text(percent + '%');	
-                $(status_div.childNodes[2]).text(data['status']);	
-                if (data['state'] != 'PENDING' && data['state'] != 'PROGRESS') {	
-                    if ('result' in data) {	
-                        // 展示结果	
-                        $(status_div.childNodes[3]).text('Result: ' + data['result']);	
-                    }	
-                    else {	
-                        // 意料之外的事情发生	
-                        $(status_div.childNodes[3]).text('Result: ' + data['state']);	
-                    }	
-                }	
-                else {	
-                    // 2秒后再次运行	
-                    setTimeout(function() {	
-                        update_progress(status_url, nanobar, status_div);	
-                    }, 2000);	
-                }	
-            });	
-        }
+function start(){
+    var urls = $('#starturl').text();
+
+    var data = {url:"/jobs",param:{urls:urls}};
+    start_long_task(data);
+
+}
+
+function jump(){
+ window.location.href="/books";
+}
 
 </script>
 
