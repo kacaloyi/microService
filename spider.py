@@ -33,6 +33,9 @@ import requests
 import random
 
 from Common.Lib.fakePhoneAgent import getPhoneUserAgent
+from Common.facation import * 
+from Common.hmAnalysis import * 
+from Common.mkzAnalysis import *
 from lxml import etree, html
 
 from Conf.config import *
@@ -42,52 +45,7 @@ from Common.functions import *
 from celery import Celery
 
 
-# 将两个列表对应组和成一个新的字典
-def list2dic(list1,list2):
-    # lambda是匿名函数, 冒号前为参数, 后面为返回值, 即传入x, y, 返回[x,y]
-    # map函数, 第一个参数为函数名, 后面为参数, 返回返回一个将 function 应用于 iterable 中每一项并输出其结果的迭代器。
-    return dict(map(lambda x,y:[x,y], list1,list2)) 
 
-# 起始位置，漫画的全部列表页面
-base_url = [
-    
-     "http://www.ikanwzd.top/booklist",
-     "http://www.ikanwzd.top/booklist?page=2",
-     "http://www.ikanwzd.top/booklist?page=3",
-     "http://www.ikanwzd.top/booklist?page=4",
-     "http://www.ikanwzd.top/booklist?page=5",
-     "http://www.ikanwzd.top/booklist?page=6",
-     "http://www.ikanwzd.top/booklist?page=7",
-     "http://www.ikanwzd.top/booklist?page=8",
-     "http://www.ikanwzd.top/booklist?page=9",
-     "http://www.ikanwzd.top/booklist?page=10",
-     "http://www.ikanwzd.top/booklist?page=11",
-     "http://www.ikanwzd.top/booklist?page=12",
-     "http://www.ikanwzd.top/booklist?page=13",
-     "http://www.ikanwzd.top/booklist?page=14"
-
-]
-
-
-
-# ip池
-proxies_list = [
-    'http://42.3.51.114:80',
-    'http://39.106.205.147:8085',
-    'http://220.135.8.49:40297',
-    'http://47.52.231.140:8080',
-    'http://183.166.97.173:999',
-    'http://117.59.224.64:80',
-    'http://103.220.73.39:8080',
-    'http://150.138.253.71:808',
-    'http://118.25.35.202:9999',
-    'http://221.2.155.35:8060',
-    'http://119.254.94.93:8088',
-]
-
-# 随机代理与请求头
-proxies = {'http': random.choice(proxies_list)}
-headers = {"User-Agent": getPhoneUserAgent()}
 
 
 
@@ -105,13 +63,16 @@ headers = {"User-Agent": getPhoneUserAgent()}
 
 
 
-class Spider:
+class Spider(Facation):
     def __init__(self, word):
+        super().__init__()
         print(word)
         self.url_book = []
         self.url_cpt  = []
         self.url_list = []
         self.word = word
+        self.reg_analysis(mkzAnalysis())
+        self.reg_analysis(hmAnalysis())
         self.db = DB.getdatebase()
 
     #
@@ -155,31 +116,15 @@ class Spider:
 
     #仅搜索一个地址
     def searchbook(self,start_url):
-        print("searchbook {}".format(start_url))
+    #    print("searchbook {}".format(start_url))
         print(headers)
         
-        try:
-            response = requests.get(start_url, headers=headers)
-            
-        except requests.RequestException as e:
-            print (e)
-            #print ("状态码：",r.status_code)
-            #print ("网站源代码",r.text)
-            #print ("头部请求",r.headers) 
-            return
-        else:
+        als = self.get_analysis(start_url)
+        print (als._jobname)
+        als.searchbook(start_url)
+        return 
 
-            myhtml = etree.HTML(response.content.decode())
-
-            ul = myhtml.xpath("//ul[@class = 'manga-list-2']/li")
-        
-            for li in ul:
-                bname = li.xpath("./p[@class ='manga-list-2-title']/a/text()")[0] #xpath出来的是个 list 对象。
-                burl  = li.xpath("./p[@class ='manga-list-2-title']/a/@href")[0]
-                bcover = li.xpath("./div/a/img/@data-original")[0]
-                print(bname,": ",burl,"封面:",bcover)
-                self.addRowbook(start_url,burl,bname,bcover)
-    
+   
     def save_book(self,comic_url,bookinfo):
         result = self.db.M('vv_sh_mhlist').where({'url_org':comic_url}).save(bookinfo)
         return result
@@ -217,136 +162,16 @@ class Spider:
     
     #获得一本漫画的详情     
     def search_book_detail(self,comic_id,comic_url,notify=None):
-        print('search_book_detail {} {}'.format(comic_id,comic_url))
-        try:
-            if None != notify :
-                notify.update_state(state='PROGRESS',	
-                          meta={'current': 0, 'total': 1,	
-                                'status': "get url"+comic_url})	
-            response = requests.get(comic_url, headers=headers)
-            
-        except requests.RequestException as e:
-            print (e)
-            errorlog(1,2,e)
-            return
-        else:
-            myhtml = etree.HTML(response.content.decode())
-            bname = myhtml.xpath("//span[@class = 'normal-top-title']/text()") 
-            bname = bname[0] if 0< len(bname) else ""
-            binfo = myhtml.xpath("//p[@class ='detail-main-info-author']") #这个有一组，第一个是别名，第二个是作者名
-            
-            bbname   = binfo[0].xpath("./a/text()")
-            bbname   = bbname[0] if 0< len(bbname) else ""              
-            bauthor  = binfo[1].xpath("./a/text()")   #作者名
-            bauthor  = bauthor[0] if 0< len(bauthor) else ""
-            bzone   = binfo[2].xpath("./a/text()")   #地区，韩国
-            bzone   = bzone[0] if 0< len(bzone) else ""
-            #bbname  = bbname[0]  #书的别名
-            bcoverpic = myhtml.xpath("//div[@class='detail-main-cover']/img/@data-original")
-            bcoverpic = bcoverpic[0] if 0< len(bcoverpic) else ""
-
-            bcate   = myhtml.xpath("//p[@class ='detail-main-info-class']/span/a/text()")   #书的分类，都市什么的
-            bcate   = bcate[0] if 0< len(bcate) else ""
-            bsummery = myhtml.xpath("//p[@class ='detail-desc']/text()")
-            bsummery = "" if len(bsummery)==0  else bsummery[0] 
-            
-
-            bstate       = myhtml.xpath("//div[@id='detail-list-title']/span[@class='detail-list-title-1']/text()")[0]  #连载完结
-            bupdate_time = myhtml.xpath("//div[@id='detail-list-title']/span[@class='detail-list-title-3']/text()")[0] #‘xxxx-xx-xx更新‘更新时间
-            bupdate_time = re.search("\d+\-?\d{2}-?\d{2}",bupdate_time).group() #‘xxxx-xx-xx更新‘只取时间，忽略掉后面的
-
-            print(bname)
-            print(bbname)
-            print(bauthor)
-            print(bzone)
-            print(bcate)
-            print(bstate)
-            print(bupdate_time)
-            print(bcoverpic)
-            print(bsummery)
-            if None != notify :
-                notify.update_state(state='PROGRESS',	
-                          meta={'current': 0, 'total': 1,	
-                                'status': "save_book"+comic_url})	
-
-            self.save_book(comic_url,
-                {
-                    'mhid':comic_id,
-                    'statu':1, # 0 刚建立 1详情已经获得 2封面已经下载
-                    'state':get_book_state(bstate),
-                    'title':bname,
-                    'create_time':NOW,
-                    'cover_pic_org':bcoverpic,
-                    'mhcate':get_book_mhcate(bcate),
-                    'cateids':get_book_cate(bcate),
-                    'author':bauthor,
-                    'summary':bsummery,
-                    'episodes':0
-                }
-            )
-            
-
-           
-
-            bchapts = myhtml.xpath("//ul[@id = 'detail-list-select']/li")
-            self.url_cpt = []
-            i = 0
-            for cpt in bchapts:
-                cptname = cpt.xpath("./a/text()")
-                cptname = cptname[0]  if 0< len(cptname) else "无标题"
-                cpturl  = cpt.xpath("./a/@href")[0] #chapter/19751
-                cptid = re.search("\d+",cpturl).group() #匹配到第一个整数
-                if  cpturl.startswith('/'):
-                    host = get_host(comic_url)
-                    cpturl = host+cpturl 
-                
-                
-                if None != notify :
-                    notify.update_state(state='PROGRESS',	
-                          meta={'current': i, 'total': len(bchapts),	
-                                'status': cptname })
-                i= i+1	
-                print(comic_id," ",cptid," ",cptname," ",cpturl)
-                self.add_row_chapt(comic_id,cptid,cptname,cpturl )
-
+        als = self.get_analysis(comic_url)
+        print (als._jobname)
+        als.search_book_detail(comic_id,comic_url,notify)
+        return 
 
     def search_chapt_detail(self,bid,cptid,cpturl):
-        print("search_chapt_detail {} {} {} ".format(bid,cptid,cpturl))
-        try:
-            response = requests.get(cpturl, headers=headers)
-            
-        except requests.RequestException as e:
-            print (e)
-            errorlog(1,2,e)
-            return
-        else:
-            myhtml = etree.HTML(response.content.decode())
-            bbar = myhtml.xpath("//ul[@class='view-bottom-bar']/li")
-            ppage = bbar[0].xpath("./a/@href")[0]
-            npage = bbar[1].xpath("./a/@href")[0]
-
-            pcpt_id = re.search("\d+",ppage).group()
-            ncpt_id = re.search("\d+",npage).group()
-
-            imgs = myhtml.xpath("//div[@id = 'cp_img']/img")
-            info = ""
-            for img in imgs:
-                picurl = img.xpath("./@data-original")[0]
-                print (picurl)
-                info = info + picurl + ','
-            info = info.rstrip(',')
-            print(info)
-
-            print("上一章:"+ppage+" 章节id:"+pcpt_id)
-            print("下一章:"+npage+" 章节id:"+ncpt_id)
-            self.save_chapt(cpturl,{
-                'mhid':bid,
-                'ji_no':cptid,
-                'pics':info,
-                'pji_no':pcpt_id,
-                'nji_no':ncpt_id,
-                'statu':1
-            })
+        als = self.get_analysis(cpturl)
+        print (als._jobname)
+        als.search_chapt_detail(bid,cptid,cpturl)
+        return 
 
 
     #单纯地下载，把url保存到本地savename文件，只处理网络出错。如果目录不存在等等，都不管。
@@ -483,6 +308,7 @@ class Spider:
 
         if curl not in self.url_list :
             filename = self.pre_download_cpt_pic(root_path,root_url,curl,bid,0)
+            filename = root_url+'/'+bid+"cover.jpg" #用这个目录，与自己网站的规则保持一致。
             self.save_2_cover(bid,filename)
 
         return
@@ -508,9 +334,12 @@ class Spider:
 
 if __name__ == "__main__":  
     spider = Spider("现在开始\r\n")
-  # spider.searchbooks(base_url)  #检查是否有新书
-    spider.prepare_path("/x/2x/3x/4x/66.txt")
-    spider.prepare_path("./x/2x/3x/4x/66.txt")
+    #spider.searchbook("http://www.ikanwzd.top/booklist")  #检查是否有新书
+    #spider.searchbook("https://www.mkzhan.com/top/popularity/")
+    #spider.search_book_detail(215599,"https://www.mkzhan.com/215599/")
+    spider.search_chapt_detail(215599,901869,"https://m.mkzhan.com/215897/933503.html")
+  #  spider.prepare_path("/x/2x/3x/4x/66.txt")
+  #  spider.prepare_path("./x/2x/3x/4x/66.txt")
 """     db = DB.getdatebase() 
     
     blist =db.M('vv_sh_mhlist').fields(['id','mhid_org','title','url_org']).where(' 1 ').fetchall()
